@@ -1,8 +1,29 @@
 /* ---- Imports Section */
 import React from 'react';
 import { object, array, bool, string, number } from 'prop-types';
+// eslint-disable-next-line no-unused-vars
+// const astrology = require('./lib/astrochart.min.js');
 // import { Signs } from './signs';
 /* End ---- */
+
+// const DisplayChart = ({ planetPos, cusps, type }) => {
+
+//   if (type == 'moment') {
+//     const momentChartData = {
+//       'planets': planetPos,
+//       'cusps': cusps
+//     };
+//     const momentChart = new window.astrology.Chart('momentChart', 600, 600).radix(momentChartData);
+//     momentChart.addPointsOfInterest({
+//       "As": [momentChartData.cusps[0]],
+//       "Ic": [momentChartData.cusps[3]],
+//       "Ds": [momentChartData.cusps[6]],
+//       "Mc": [momentChartData.cusps[9]]
+//     });
+//     momentChart.aspects();
+//   }
+//   return (null);
+// }
 
 /* ---- Display Components */
 const DisplayMethods = ({ zodiac, houseSystem }) => {
@@ -146,6 +167,7 @@ const DisplayRetrogrades = ({ planet }) => {
 
 /* ---- Exports Section */
 export {
+  // DisplayChart,
   DisplayMethods,
   DisplayDateTimeLocation,
   DisplayPlanetData,
@@ -157,6 +179,11 @@ export {
 /* End ---- */
 
 /* <- PropTypes -> */
+// DisplayChart.propTypes = {
+//   planetPos: object,
+//   cusps: array,
+//   type: string,
+// }
 DisplayMethods.propTypes = {
   zodiac: string,
   houseSystem: string,

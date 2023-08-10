@@ -1,7 +1,10 @@
 /* ---- Imports Section */
 import React from 'react';
 import { object, array, bool, string } from 'prop-types';
+// eslint-disable-next-line no-unused-vars
+const astrology = require('./lib/astrochart.min.js');
 import {
+  // DisplayChart,
   DisplayStellia,
   DisplayChartRuler,
   DisplayDateTimeLocation,
@@ -10,6 +13,53 @@ import {
 import './main.css';
 import { Signs } from './signs';
 /* End ---- */
+
+const GetPlacementData = ({ planets, houses, type }) => {
+  console.log("hello from getplacementdata: ", planets)
+  if (!planets) return null
+  const planetPos = {
+    "Sun": [planets[0].ChartPosition.Ecliptic.ArcDegrees.degrees],
+    "Moon": [planets[1].ChartPosition.Ecliptic.ArcDegrees.degrees],
+    "Mercury": [planets[2].ChartPosition.Ecliptic.ArcDegrees.degrees],
+    "Venus": [planets[3].ChartPosition.Ecliptic.ArcDegrees.degrees],
+    "Mars": [planets[4].ChartPosition.Ecliptic.ArcDegrees.degrees],
+    "Jupiter": [planets[5].ChartPosition.Ecliptic.ArcDegrees.degrees],
+    "Saturn": [planets[6].ChartPosition.Ecliptic.ArcDegrees.degrees],
+    "Uranus": [planets[7].ChartPosition.Ecliptic.ArcDegrees.degrees],
+    "Neptune": [planets[8].ChartPosition.Ecliptic.ArcDegrees.degrees, -5],
+    "Pluto": [planets[9].ChartPosition.Ecliptic.ArcDegrees.degrees, -0.1],
+  };
+  const cusps = [
+    houses[0].ChartPosition.StartPosition.Ecliptic.ArcDegrees.degrees,
+    houses[1].ChartPosition.StartPosition.Ecliptic.ArcDegrees.degrees,
+    houses[2].ChartPosition.StartPosition.Ecliptic.ArcDegrees.degrees,
+    houses[3].ChartPosition.StartPosition.Ecliptic.ArcDegrees.degrees,
+    houses[4].ChartPosition.StartPosition.Ecliptic.ArcDegrees.degrees,
+    houses[5].ChartPosition.StartPosition.Ecliptic.ArcDegrees.degrees,
+    houses[6].ChartPosition.StartPosition.Ecliptic.ArcDegrees.degrees,
+    houses[7].ChartPosition.StartPosition.Ecliptic.ArcDegrees.degrees,
+    houses[8].ChartPosition.StartPosition.Ecliptic.ArcDegrees.degrees,
+    houses[9].ChartPosition.StartPosition.Ecliptic.ArcDegrees.degrees,
+    houses[10].ChartPosition.StartPosition.Ecliptic.ArcDegrees.degrees,
+    houses[11].ChartPosition.StartPosition.Ecliptic.ArcDegrees.degrees,
+  ];
+
+  if (type == 'moment') {
+    const momentChartData = {
+      'planets': planetPos,
+      'cusps': cusps
+    };
+    const momentChart = new window.astrology.Chart('momentChart', 700, 700).radix(momentChartData);
+    momentChart.addPointsOfInterest({
+      "As": [momentChartData.cusps[0]],
+      "Ic": [momentChartData.cusps[3]],
+      "Ds": [momentChartData.cusps[6]],
+      "Mc": [momentChartData.cusps[9]]
+    });
+    momentChart.aspects();
+  }
+  return (null);
+}
 
 /* ---- Get Data for Display Components Section */
 const CalculateStellia = ({ placementArr, placementSet }) => {
@@ -104,6 +154,7 @@ const GetChartRuler = ({ acHouse, planets }) => {
 
 /* ---- Exports Section */
 export {
+  GetPlacementData,
   CalculateStellia,
   GetSignHouseSets,
   GetDateTimeLocationMethods,
@@ -112,6 +163,11 @@ export {
 /* End ---- */
 
 /* <- PropTypes -> */
+GetPlacementData.propTypes = {
+  planets: array,
+  houses: array,
+  type: string,
+}
 GetSignHouseSets.propTypes = {
   planets: array,
   unknown: bool,

@@ -16,6 +16,7 @@ import {
   HOUSESYSTEMS,
 } from './defaultData.js';
 import {
+  GetPlacementData,
   GetChartRuler,
   GetDateTimeLocationMethods,
   GetSignHouseSets,
@@ -151,6 +152,9 @@ const ChartOfTheMoment = ({ horoscope }) => {
   console.log(`%cHouses`, 'border: 1px solid white; padding: 10px ;');
   console.log(houses);
 
+  useEffect(() => { GetPlacementData(props.horoscope._celestialBodies?.all, horoscope?._houses, 'moment') },
+    [horoscope?._celestialBodies?.all, horoscope?._houses])
+
   /* <-- Return UI --> */
   return (
     <>
@@ -163,6 +167,8 @@ const ChartOfTheMoment = ({ horoscope }) => {
             houseSystem={horoscope._houseSystem}
           />
         </div>
+        <div id='momentChart'></div>
+
         <div className='chart'>
           {planets.map((planet) => (
             <React.Fragment key={planet.label}>
