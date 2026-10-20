@@ -20,6 +20,35 @@ type AstroData = Parameters<Chart['radix']>[0];
 /* ---- Chart Drawing Section */
 const CHART_SIZE = 700;
 
+/* Enlarges planet, sign, cusp, & axis symbols - astrochart's default is 1 */
+const SYMBOL_SCALE = 1.3;
+
+/* astrochart draws each planet's degree & "R" (retrograde) labels as a vertical stack,
+   spaced by SYMBOL_SCALE; scale the text with it (default 8px) so the labels don't overlap */
+const POINTS_TEXT_SIZE = 8 * SYMBOL_SCALE;
+const RETROGRADE_TEXT_SIZE = POINTS_TEXT_SIZE * 1.25;
+
+const CHART_SETTINGS = {
+  SYMBOL_SCALE,
+  POINTS_TEXT_SIZE,
+  /* Minimum distance between planet symbols (default 10); also sets the label stack's spacing,
+     so the extra room keeps the larger "R" clear of the degree label */
+  COLLISION_RADIUS: 15,
+  /* Hide the r / d / e / E / f dignity letters; they crowd neighbouring planets' labels */
+  SHOW_DIGNITIES_TEXT: false,
+  /* As / Ds / Mc / Ic labels sit outside the wheel, on the page background; matches --font-color */
+  SYMBOL_AXIS_FONT_COLOR: '#f5f5f3',
+};
+
+/* Enlarges the "R" labels; the COLLISION_RADIUS spacing leaves room above for the degree label */
+const enlargeRetrogradeLabels = (container: HTMLElement) => {
+  container.querySelectorAll('[id$="-radix-planets"] text').forEach((text) => {
+    if (text.textContent !== 'R') return;
+    text.setAttribute('font-size', String(RETROGRADE_TEXT_SIZE));
+    text.setAttribute('font-weight', 'bold');
+  });
+};
+
 /* Converts horoscope data into the format expected by astrochart */
 const toAstroData = (planets: readonly CelestialBody[], houses: readonly House[]): AstroData => ({
   planets: Object.fromEntries(
@@ -49,11 +78,12 @@ export const RadixChart = ({ planets, houses }: RadixChartProps) => {
     const [
       as, , , ic, , , ds, , , mc,
     ] = data.cusps;
-    const radix = new Chart(id, CHART_SIZE, CHART_SIZE).radix(data);
+    const radix = new Chart(id, CHART_SIZE, CHART_SIZE, CHART_SETTINGS).radix(data);
     if (as !== undefined && ic !== undefined && ds !== undefined && mc !== undefined) {
       radix.addPointsOfInterest({ As: [as], Ic: [ic], Ds: [ds], Mc: [mc] });
     }
     radix.aspects();
+    enlargeRetrogradeLabels(container);
 
     /* Remove the drawn SVG so re-renders don't stack charts on top of each other */
     return () => {

@@ -69,3 +69,40 @@ test('every celestial body is placed in a house, including across 0° Aries', ()
     expect(planet.House.id, planet.label).toBeGreaterThan(0);
   }
 });
+
+describe('Use my Location', () => {
+  const mockGeolocation = (getCurrentPosition: Geolocation['getCurrentPosition']) => {
+    Object.defineProperty(navigator, 'geolocation', { configurable: true, value: { getCurrentPosition } });
+  };
+
+  test('fills the lat/lon textboxes & moves the moment chart', async () => {
+    const user = userEvent.setup();
+    mockGeolocation((success) => {
+      success({ coords: { latitude: 45.4215, longitude: -75.6972 } } as GeolocationPosition);
+    });
+    render(<App />);
+
+    await user.click(screen.getByRole('button', { name: 'Use my Location' }));
+
+    expect(screen.getByLabelText('Latitude:')).toHaveValue(45.42);
+    expect(screen.getByLabelText('Longitude:')).toHaveValue(-75.7);
+    expect(screen.getByText(/at 45\.42° N, 75\.7° W/)).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Clear my Location' }));
+    expect(screen.getByLabelText('Latitude:')).toHaveValue(0);
+  });
+
+  test('explains a denied request & re-enables the button', async () => {
+    const user = userEvent.setup();
+    const alertSpy = vi.spyOn(window, 'alert').mockImplementation(() => undefined);
+    mockGeolocation((_success, error) => {
+      error?.({ code: 1 } as GeolocationPositionError);
+    });
+    render(<App />);
+
+    await user.click(screen.getByRole('button', { name: 'Use my Location' }));
+
+    expect(alertSpy).toHaveBeenCalledWith(expect.stringContaining('Location access was denied'));
+    expect(screen.getByRole('button', { name: 'Use my Location' })).toBeEnabled();
+  });
+});

@@ -17,3 +17,14 @@
 body {
   overflow: hidden;
 }
+
+/* Radix chart drawing - centred, & scaled down to fit narrow screens */
+.radix-chart {
+  display: flex;
+  justify-content: center;
+  margin: 1em auto;
+}
+.radix-chart > svg {
+  max-width: 100%;
+  height: auto;
+}

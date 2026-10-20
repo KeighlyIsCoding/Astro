@@ -42,6 +42,8 @@ interface Coordinates {
   longitude: number;
 }
 
+type LocationStatus = 'off' | 'locating' | 'on';
+
 interface SystemValues {
   zodiac: Zodiac;
   houseSystem: HouseSystem;
@@ -60,6 +62,15 @@ const isFormField = (name: string): name is FormField => (FORM_FIELDS as readonl
 /* ---- Helpers */
 const logHeading = (label: string, color = 'white') => {
   console.log(`%c${label}`, `border: 1px solid ${color}; padding: 10px ;`);
+};
+
+/* Stop waiting on the browser / OS location service after this long */
+const LOCATION_TIMEOUT_MS = 10_000;
+
+const LOCATION_ERRORS: Record<number, string> = {
+  1: 'Location access was denied. Allow location access for this site in your browser settings, then try again.',
+  2: 'Your location is currently unavailable. Check that location services are turned on for your device.',
+  3: 'Retrieving your location timed out. Please try again.',
 };
 
 /* Rounds coords to .00 */
@@ -344,8 +355,8 @@ const DisplayMethodsSelect = ({ birthData, momentData, zodiacs, houseSystems }: 
     unknown
       - Tracks state of the unknown birth time checkbox
           - true  - formValues: hour/minute=0, hour/minute selects are disabled
-    locationEnabled / momentLocation
-      - Tracks whether the "Use my Location" feature is on
+    locationStatus / momentLocation
+      - Tracks whether the "Use my Location" feature is off, waiting on the browser, or on
           - on  - uses navigator to get the currentPositions' lat/lon coords & rounds them to .00
                 - Moment Chart & formValues: latitude/longitude = lat/lon
           - off - Moment Chart: default location, formValues: latitude/longitude = 0.00/0.00
@@ -372,7 +383,7 @@ const AstroForm = ({ defaultBirthData, months, days, hours, minutes, zodiacs, ho
   /* <- State -> */
   const [formValues, setFormValues] = useState<FormValues>(() => toFormValues(defaultBirthData));
   const [unknown, setUnknown] = useState(defaultBirthData.unknown);
-  const [locationEnabled, setLocationEnabled] = useState(false);
+  const [locationStatus, setLocationStatus] = useState<LocationStatus>('off');
   const [momentLocation, setMomentLocation] = useState<Coordinates>(DEFAULT_MOMENT_LOCATION);
   const [birthData, setBirthData] = useState<ChartData | null>(null);
   /* The moment is captured once, when the page loads */
@@ -403,8 +414,8 @@ const AstroForm = ({ defaultBirthData, months, days, hours, minutes, zodiacs, ho
 
   const handleUseLocation = () => {
     /* <- Undo Use Location -> */
-    if (locationEnabled) {
-      setLocationEnabled(false);
+    if (locationStatus === 'on') {
+      setLocationStatus('off');
       setLocation({ latitude: 0, longitude: 0 }, DEFAULT_MOMENT_LOCATION);
       return;
     }
@@ -414,6 +425,7 @@ const AstroForm = ({ defaultBirthData, months, days, hours, minutes, zodiacs, ho
       alert('It seems like Geolocation, which is required for this function, is not enabled in your browser.');
       return;
     }
+    setLocationStatus('locating');
     navigator.geolocation.getCurrentPosition(
       // Success
       (position) => {
@@ -421,13 +433,16 @@ const AstroForm = ({ defaultBirthData, months, days, hours, minutes, zodiacs, ho
           latitude: roundCoord(position.coords.latitude),
           longitude: roundCoord(position.coords.longitude),
         };
-        setLocationEnabled(true);
+        setLocationStatus('on');
         setLocation(coords, coords);
       },
       // Error
-      () => {
-        alert('Error in retrieving current location.');
+      (error) => {
+        setLocationStatus('off');
+        alert(LOCATION_ERRORS[error.code] ?? 'Error in retrieving current location.');
       },
+      /* Without a timeout, the request can wait forever if the OS location service never responds */
+      { timeout: LOCATION_TIMEOUT_MS, maximumAge: 60_000 },
     );
   };
 
@@ -479,7 +494,9 @@ const AstroForm = ({ defaultBirthData, months, days, hours, minutes, zodiacs, ho
             <input type='number' id='latitude' className='location' name='latitude' min='-90.00' max='90.00' step='0.01' value={formValues.latitude} onChange={handleChange} />
             <label htmlFor='longitude' className='location'>Longitude:</label>
             <input type='number' id='longitude' className='location' name='longitude' min='-180.00' max='180.00' step='0.01' value={formValues.longitude} onChange={handleChange} />
-            <button type='button' id='useLocation' className='location' name='useLocation' onClick={handleUseLocation}>Use my Location</button>
+            <button type='button' id='useLocation' className='location' name='useLocation' onClick={handleUseLocation} disabled={locationStatus === 'locating'}>
+              {{ off: 'Use my Location', locating: 'Locating…', on: 'Clear my Location' }[locationStatus]}
+            </button>
           </div>
           <button type='button' id='submit' name='submit' onClick={() => { setBirthData(toChartData(formValues, unknown)); }}>Calculate Chart</button>
         </form>
