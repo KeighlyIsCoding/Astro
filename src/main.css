@@ -12,7 +12,7 @@
 
 /* Imports */
 @import url("./fonts/montserrat/montserrat.css");
-@import url("./keighly.ca-styles/styles.css");
+@import url("./styles/styles.css");
 
 body {
   overflow: hidden;

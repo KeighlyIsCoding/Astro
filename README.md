@@ -1,6 +1,18 @@
 # Astro
 ## Astrology Web App
 
+### Development
+Built with React, TypeScript (strict), & Vite. Requires Node `^20.19.0 || >=22.12.0`.
+
+| Command | Description |
+| --- | --- |
+| `npm run dev` | Start the dev server at http://localhost:3000 |
+| `npm run build` | Type-check & build for production into `build/` |
+| `npm run preview` | Serve the production build locally |
+| `npm run typecheck` | Type-check without building |
+| `npm run lint` | Lint with ESLint (typescript-eslint, strict type-checked) |
+| `npm test` | Run tests with Vitest |
+
 
 ### Features | TODO
   - Graphics for
